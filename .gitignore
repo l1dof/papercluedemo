@@ -31,5 +31,5 @@ yarn-error.log*
 # local analysis artifacts
 graphify-out/
 
-# Claude Code local state (settings, session data)
+# local AI tooling state
 .claude/
