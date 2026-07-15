@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Zen+Old+Mincho:wght@400;500;600;700&family=Zen+Kaku+Gothic+New:wght@300;400;500;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@4.0.379/legacy/build/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
 <style>
   :root {
@@ -584,7 +584,7 @@ document.querySelectorAll('.mode-btn').forEach(function(btn) {
 
 /* ---------- File upload / text extraction ---------- */
 if (window.pdfjsLib) {
-  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.0.379/legacy/build/pdf.worker.min.js';
+  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 }
 
 const MAX_FILE_SIZE = 8 * 1024 * 1024; // 8MB, client-side guard for the demo
@@ -617,7 +617,38 @@ async function extractTextFromFile(file) {
   throw new Error('Unsupported file type. Use .txt, .md, .pdf, or .docx.');
 }
 
-function attachUploader(fileInputId, statusId, targetTextareaId, filenameInputId) {
+const SECTION_HEADERS = ['abstract', 'introduction', 'background', 'methods', 'methodology', 'results', 'discussion', 'conclusion', 'references'];
+
+function splitIntoSections(text) {
+  const lines = text.split(/\n+/);
+  const sections = [];
+  let current = { name: 'preamble', content: [] };
+  const headerRegex = new RegExp('^(\\d+\\.?\\s*)?(' + SECTION_HEADERS.join('|') + ')\\b', 'i');
+  lines.forEach(function(line) {
+    const trimmed = line.trim();
+    const match = trimmed.match(headerRegex);
+    if (match && trimmed.length < 40) {
+      sections.push(current);
+      current = { name: match[2].toLowerCase(), content: [] };
+    } else {
+      current.content.push(line);
+    }
+  });
+  sections.push(current);
+  return sections;
+}
+
+function extractSection(text, sectionName) {
+  const sections = splitIntoSections(text);
+  const found = sections.find(function(s) { return s.name === sectionName; });
+  if (found) {
+    const content = found.content.join(' ').replace(/\s+/g, ' ').trim();
+    if (content.length > 20) return content;
+  }
+  return null;
+}
+
+function attachUploader(fileInputId, statusId, targetTextareaId, filenameInputId, extractMode) {
   const fileInput = document.getElementById(fileInputId);
   const statusEl = document.getElementById(statusId);
   const targetTextarea = document.getElementById(targetTextareaId);
@@ -638,16 +669,32 @@ function attachUploader(fileInputId, statusId, targetTextareaId, filenameInputId
     statusEl.textContent = 'Reading ' + file.name + '...';
 
     try {
-      const text = await extractTextFromFile(file);
-      if (!text) {
+      const fullText = await extractTextFromFile(file);
+      if (!fullText) {
         statusEl.className = 'upload-status error';
         statusEl.textContent = 'Could not find any text in this file.';
         return;
       }
-      targetTextarea.value = text;
+
+      let finalText;
+      let note = '';
+
+      if (extractMode === 'full') {
+        finalText = fullText;
+      } else {
+        const section = extractSection(fullText, extractMode);
+        if (section) {
+          finalText = section;
+        } else {
+          finalText = fullText;
+          note = ' (no ' + extractMode + ' section detected, sending the full document so the AI can work from it directly)';
+        }
+      }
+
+      targetTextarea.value = finalText;
       if (filenameInput) filenameInput.value = file.name;
       statusEl.className = 'upload-status filled';
-      statusEl.textContent = '✓ ' + file.name + ' loaded';
+      statusEl.textContent = '✓ ' + file.name + ' loaded' + note;
     } catch (e) {
       statusEl.className = 'upload-status error';
       statusEl.textContent = e.message || 'Could not read this file.';
@@ -657,10 +704,10 @@ function attachUploader(fileInputId, statusId, targetTextareaId, filenameInputId
   });
 }
 
-attachUploader('mindmap-analyze-file', 'mindmap-analyze-file-status', 'mindmap-analyze-abstract', null);
-attachUploader('insights-file', 'insights-file-status', 'insights-text', 'insights-filename');
-attachUploader('manuscript-file', 'manuscript-file-status', 'manuscript-abstract', 'manuscript-filename');
-attachUploader('proofreading-file', 'proofreading-file-status', 'proofreading-intro', 'proofreading-filename');
+attachUploader('mindmap-analyze-file', 'mindmap-analyze-file-status', 'mindmap-analyze-abstract', null, 'abstract');
+attachUploader('insights-file', 'insights-file-status', 'insights-text', 'insights-filename', 'full');
+attachUploader('manuscript-file', 'manuscript-file-status', 'manuscript-abstract', 'manuscript-filename', 'abstract');
+attachUploader('proofreading-file', 'proofreading-file-status', 'proofreading-intro', 'proofreading-filename', 'introduction');
 
 async function callFunction(name, body) {
   const sessionResult = await client.auth.getSession();
