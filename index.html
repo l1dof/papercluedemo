@@ -660,17 +660,35 @@ async function extractTextFromFile(file) {
 
 const SECTION_HEADERS = ['abstract', 'introduction', 'background', 'methods', 'methodology', 'results', 'discussion', 'conclusion', 'references'];
 
+// Japanese section headings mapped to the same canonical English names used above,
+// so extraction works the same way regardless of the document's language.
+const JP_SECTION_MAP = {
+  '要旨': 'abstract', '概要': 'abstract', 'アブストラクト': 'abstract',
+  '序論': 'introduction', 'はじめに': 'introduction', '緒言': 'introduction', '背景': 'introduction',
+  '方法': 'methods', '手法': 'methods', '実験方法': 'methods',
+  '結果': 'results',
+  '考察': 'discussion', '議論': 'discussion',
+  '結論': 'conclusion', 'まとめ': 'conclusion',
+  '参考文献': 'references', '引用文献': 'references',
+};
+const JP_HEADER_PATTERN = Object.keys(JP_SECTION_MAP).join('|');
+
 function splitIntoSections(text) {
   const lines = text.split(/\n+/);
   const sections = [];
   let current = { name: 'preamble', content: [] };
   const headerRegex = new RegExp('^(\\d+\\.?\\s*)?(' + SECTION_HEADERS.join('|') + ')\\b', 'i');
+  const jpHeaderRegex = new RegExp('^(\\d+\\.?\\s*)?(' + JP_HEADER_PATTERN + ')', '');
   lines.forEach(function(line) {
     const trimmed = line.trim();
     const match = trimmed.match(headerRegex);
+    const jpMatch = trimmed.match(jpHeaderRegex);
     if (match && trimmed.length < 40) {
       sections.push(current);
       current = { name: match[2].toLowerCase(), content: [] };
+    } else if (jpMatch && trimmed.length < 20) {
+      sections.push(current);
+      current = { name: JP_SECTION_MAP[jpMatch[2]], content: [] };
     } else {
       current.content.push(line);
     }
@@ -877,20 +895,20 @@ document.querySelectorAll('.btn[data-mode]').forEach(function(btn) {
     if (mode === 'mindmap') {
       fnName = 'mind-map'; resultId = 'mindmap-result'; renderer = renderMindMap;
       body = mindmapMode === 'keywords'
-        ? { mode: 'keywords', topic: document.getElementById('mindmap-topic').value }
-        : { mode: 'analyze', title: document.getElementById('mindmap-analyze-title').value, abstract: document.getElementById('mindmap-analyze-abstract').value };
+        ? { mode: 'keywords', topic: document.getElementById('mindmap-topic').value, lang: currentLang }
+        : { mode: 'analyze', title: document.getElementById('mindmap-analyze-title').value, abstract: document.getElementById('mindmap-analyze-abstract').value, lang: currentLang };
     } else if (mode === 'insights') {
       fnName = 'paper-insights'; resultId = 'insights-result'; renderer = renderInsights;
-      body = { document_text: document.getElementById('insights-text').value, filename: document.getElementById('insights-filename').value };
+      body = { document_text: document.getElementById('insights-text').value, filename: document.getElementById('insights-filename').value, lang: currentLang };
     } else if (mode === 'manuscript') {
       fnName = 'manuscript-ingestion'; resultId = 'manuscript-result'; renderer = renderManuscript;
-      body = { sections: { title: document.getElementById('manuscript-title').value, abstract: document.getElementById('manuscript-abstract').value }, filename: document.getElementById('manuscript-filename').value };
+      body = { sections: { title: document.getElementById('manuscript-title').value, abstract: document.getElementById('manuscript-abstract').value }, filename: document.getElementById('manuscript-filename').value, lang: currentLang };
     } else if (mode === 'proofreading') {
       fnName = 'proofreading'; resultId = 'proofreading-result'; renderer = renderProofreading;
-      body = { sections: { introduction: document.getElementById('proofreading-intro').value, methods: document.getElementById('proofreading-methods').value }, filename: document.getElementById('proofreading-filename').value };
+      body = { sections: { introduction: document.getElementById('proofreading-intro').value, methods: document.getElementById('proofreading-methods').value }, filename: document.getElementById('proofreading-filename').value, lang: currentLang };
     } else if (mode === 'journal') {
       fnName = 'journal-formatting'; resultId = 'journal-result'; renderer = renderJournal;
-      body = { title: document.getElementById('journal-title').value, abstract: document.getElementById('journal-abstract').value, keywords: document.getElementById('journal-keywords').value.split(',').map(function(k) { return k.trim(); }).filter(Boolean) };
+      body = { title: document.getElementById('journal-title').value, abstract: document.getElementById('journal-abstract').value, keywords: document.getElementById('journal-keywords').value.split(',').map(function(k) { return k.trim(); }).filter(Boolean), lang: currentLang };
     }
 
     const resultEl = document.getElementById(resultId);
