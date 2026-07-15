@@ -105,15 +105,15 @@
   nav button.active { border-left-color: var(--seal); background: var(--paper-2); color: var(--ink); font-weight: 500; }
   nav .divider { height: 1px; background: var(--line); margin: 16px 8px; }
 
-  main { padding: 42px 48px; max-width: 1080px; }
+  main { padding: 42px 48px; max-width: none; }
   section { display: none; animation: fadeUp 0.4s cubic-bezier(.2,.8,.2,1) both; }
   section.active { display: block; }
-  .panel-head { margin-bottom: 26px; }
+  .panel-head { margin-bottom: 26px; max-width: 62ch; }
   .panel-head .eyebrow { font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--seal); margin-bottom: 6px; }
   .panel-head h2 { font-size: 24px; margin: 0 0 6px; }
-  .panel-head .desc { font-size: 13px; color: var(--muted); max-width: 62ch; }
+  .panel-head .desc { font-size: 13px; color: var(--muted); }
 
-  .panel-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: start; }
+  .panel-grid { display: grid; grid-template-columns: minmax(340px, 420px) 1fr; gap: 48px; align-items: start; }
   .panel-form { min-width: 0; }
   .panel-result-col { min-width: 0; position: sticky; top: 90px; }
 
@@ -130,23 +130,25 @@
   .mode-tabs button.active { background: var(--indigo); color: #fff; border-color: var(--indigo); }
 
   .empty-state {
-    margin-top: 20px; padding: 34px 28px; border: 1px dashed var(--line); color: var(--muted);
-    font-size: 13px; text-align: center;
+    margin-top: 0; padding: 60px 40px; border: 1px dashed var(--line); color: var(--muted);
+    font-size: 14px; text-align: center; min-height: 320px; display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
   }
-  .empty-state .empty-glyph { font-size: 22px; color: var(--line); margin-bottom: 10px; }
+  .empty-state .empty-glyph { font-size: 30px; color: var(--line); margin-bottom: 14px; }
   .loading-state {
-    margin-top: 20px; padding: 20px 22px; border: 1px solid var(--line); background: var(--paper-2);
-    display: flex; align-items: center; gap: 11px; font-size: 13px; color: var(--ink-soft);
+    margin-top: 0; padding: 40px 34px; border: 1px solid var(--line); background: var(--paper-2);
+    display: flex; align-items: center; gap: 12px; font-size: 14px; color: var(--ink-soft); min-height: 320px;
+    justify-content: center;
   }
   .spinner {
-    width: 14px; height: 14px; border: 2px solid var(--line); border-top-color: var(--seal);
+    width: 16px; height: 16px; border: 2px solid var(--line); border-top-color: var(--seal);
     border-radius: 50%; animation: spin 0.7s linear infinite; flex-shrink: 0;
   }
   @keyframes spin { to { transform: rotate(360deg); } }
   .btn .spinner { border-top-color: #fff; margin-right: 2px; }
 
-  .result-card { margin-top: 20px; border: 1px solid var(--line); background: #fff; padding: 24px 26px; animation: fadeIn 0.3s ease both; }
-  .result-card .summary { font-size: 14px; margin: 0 0 18px; color: var(--ink-soft); }
+  .result-card { margin-top: 0; border: 1px solid var(--line); background: #fff; padding: 36px 40px; animation: fadeIn 0.3s ease both; min-height: 320px; }
+  .result-card .summary { font-size: 15px; margin: 0 0 22px; color: var(--ink-soft); line-height: 1.7; }
   .score-row { margin-bottom: 16px; }
   .score-row:last-child { margin-bottom: 0; }
   .score-row .score-label { display: flex; justify-content: space-between; font-size: 12.5px; margin-bottom: 6px; text-transform: capitalize; color: var(--ink-soft); }
@@ -287,7 +289,7 @@
             <button class="btn" data-mode="mindmap" data-i18n="run_button_mindmap">Search</button>
           </div>
           <div class="panel-result-col">
-            <div class="empty-state" id="mindmap-result"><div class="empty-glyph">◆</div><span data-i18n="no_request_mindmap">Enter a topic or a paper to get started.</span></div>
+            <div class="empty-state" id="mindmap-result" style="display:none"><div class="empty-glyph">◆</div><span data-i18n="no_request_mindmap">Enter a topic or a paper to get started.</span></div>
           </div>
         </div>
       </section>
@@ -313,7 +315,7 @@
             <button class="btn" data-mode="insights" data-i18n="run_button_insights">Score this document</button>
           </div>
           <div class="panel-result-col">
-            <div class="empty-state" id="insights-result"><div class="empty-glyph">◇</div><span data-i18n="no_request_insights">Paste a document to see its scores.</span></div>
+            <div class="empty-state" id="insights-result" style="display:none"><div class="empty-glyph">◇</div><span data-i18n="no_request_insights">Paste a document to see its scores.</span></div>
           </div>
         </div>
       </section>
@@ -341,7 +343,7 @@
             <button class="btn" data-mode="manuscript" data-i18n="run_button_manuscript">Review manuscript</button>
           </div>
           <div class="panel-result-col">
-            <div class="empty-state" id="manuscript-result"><div class="empty-glyph">▣</div><span data-i18n="no_request_manuscript">Add your manuscript sections to begin the review.</span></div>
+            <div class="empty-state" id="manuscript-result" style="display:none"><div class="empty-glyph">▣</div><span data-i18n="no_request_manuscript">Add your manuscript sections to begin the review.</span></div>
           </div>
         </div>
       </section>
@@ -369,7 +371,7 @@
             <button class="btn" data-mode="proofreading" data-i18n="run_button_proofreading">Check writing</button>
           </div>
           <div class="panel-result-col">
-            <div class="empty-state" id="proofreading-result"><div class="empty-glyph">◈</div><span data-i18n="no_request_proofreading">Add a section or two to get feedback.</span></div>
+            <div class="empty-state" id="proofreading-result" style="display:none"><div class="empty-glyph">◈</div><span data-i18n="no_request_proofreading">Add a section or two to get feedback.</span></div>
           </div>
         </div>
       </section>
@@ -391,7 +393,7 @@
             <button class="btn" data-mode="journal" data-i18n="run_button_journal">Find a match</button>
           </div>
           <div class="panel-result-col">
-            <div class="empty-state" id="journal-result"><div class="empty-glyph">◎</div><span data-i18n="no_request_journal">Add your paper's details to see matching journals.</span></div>
+            <div class="empty-state" id="journal-result" style="display:none"><div class="empty-glyph">◎</div><span data-i18n="no_request_journal">Add your paper's details to see matching journals.</span></div>
           </div>
         </div>
       </section>
@@ -892,6 +894,7 @@ document.querySelectorAll('.btn[data-mode]').forEach(function(btn) {
     }
 
     const resultEl = document.getElementById(resultId);
+    resultEl.style.display = '';
     resultEl.className = 'loading-state';
     resultEl.innerHTML = '<span class="spinner"></span>Working on it...';
 
