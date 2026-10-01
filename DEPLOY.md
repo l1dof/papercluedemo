@@ -4,14 +4,14 @@ Stack : Docker Compose avec l'app Next.js (build `standalone`) derrière Caddy, 
 
 ## 1. Préparer le VPS (une seule fois)
 
-```bash
-# Docker + plugin compose (Debian/Ubuntu)
-curl -fsSL https://get.docker.com | sh
-sudo usermod -aG docker $USER   # puis se reconnecter
+Sur Rocky Linux / RHEL (VPS OVH), un script fait tout (Docker, pare-feu, clone, `.env` modèle) :
 
-git clone https://github.com/l1dof/papercluedemo.git ~/papercluedemo
-cd ~/papercluedemo
+```bash
+curl -fsSL https://raw.githubusercontent.com/l1dof/papercluedemo/main/scripts/setup-vps.sh | bash
+# puis se déconnecter / reconnecter pour que le groupe docker s'applique
 ```
+
+Sur Debian/Ubuntu : `curl -fsSL https://get.docker.com | sh`, puis `git clone` du dépôt dans `~/papercluedemo`.
 
 Créer `~/papercluedemo/.env` :
 
@@ -44,7 +44,8 @@ Secrets à créer dans GitHub → Settings → Secrets and variables → Actions
 |---|---|
 | `VPS_HOST` | IP ou nom d'hôte du VPS |
 | `VPS_USER` | utilisateur SSH (membre du groupe `docker`) |
-| `VPS_SSH_KEY` | clé privée SSH dont la clé publique est dans `~/.ssh/authorized_keys` sur le VPS |
+| `VPS_SSH_KEY` | clé privée SSH dont la clé publique est dans `~/.ssh/authorized_keys` sur le VPS (recommandé) |
+| `VPS_PASSWORD` | à la place de la clé : mot de passe SSH de l'utilisateur |
 | `VPS_PORT` | optionnel, 22 par défaut |
 | `VPS_APP_DIR` | optionnel, `~/papercluedemo` par défaut |
 
