@@ -12,8 +12,8 @@ services:
     expose:
       - "3000"
 
-  # Reverse proxy with automatic HTTPS (Let's Encrypt) when DOMAIN is a real
-  # domain pointing at the VPS; with the default ":80" it serves plain HTTP.
+  # Reverse proxy with automatic HTTPS (Let's Encrypt). DOMAIN is required so
+  # the login form and session cookies are never served over plain HTTP.
   caddy:
     image: caddy:2-alpine
     restart: unless-stopped
@@ -23,7 +23,7 @@ services:
       - "80:80"
       - "443:443"
     environment:
-      DOMAIN: ${DOMAIN:-:80}
+      DOMAIN: ${DOMAIN:?set DOMAIN in .env (a hostname pointing at the VPS)}
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy_data:/data

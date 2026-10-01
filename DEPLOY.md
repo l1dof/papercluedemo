@@ -18,8 +18,8 @@ Créer `~/papercluedemo/.env` :
 ```env
 NEXT_PUBLIC_SUPABASE_URL=https://<project-ref>.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=sb_publishable_...
-# Un nom de domaine dont l'enregistrement A pointe vers l'IP du VPS -> HTTPS auto.
-# Sans domaine, laisser vide : le site est servi en HTTP sur le port 80.
+# Obligatoire : un nom d'hôte dont l'enregistrement A pointe vers l'IP du VPS (HTTPS auto).
+# Sans nom de domaine, utiliser <IP-avec-tirets>.sslip.io, ex. 203-0-113-10.sslip.io
 DOMAIN=app.exemple.com
 ```
 
